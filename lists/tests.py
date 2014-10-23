@@ -21,32 +21,23 @@ class HomePageTest(TestCase):
 
         self.assertEqual(response.content.decode(), expected_html) # then
 
-    def test_home_page_can_save_a_POST_request(self):
-        request = HttpRequest()                                    # setup / given
-        request.method = 'POST'
-        request.POST['item_text'] = 'A new list item'
+class NewListTest(TestCase):
 
-        response = home_page(request)                              # exercise / when
-
+    def test_saving_a_POST_request(self):
+        self.client.post(
+            '/lists/new',
+            data = {'item_text': 'A new list item'}
+        )
         self.assertEqual(Item.objects.count(), 1)                  # assert / then
         new_item = Item.objects.first()
         self.assertEqual(new_item.text, 'A new list item')
 
-    def test_home_page_redirects_after_POST(self):
-        request = HttpRequest()
-        request.method = 'POST'
-        request.POST['item_text'] = 'A new list item'
-
-        response = home_page(request)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], '/lists/the-only-list-in-the-world/')
-
-    def test_home_page_only_saves_items_when_necessary(self):
-        request = HttpRequest() # setup test
-        home_page(request) # function to be exercised
-        self.assertEqual(Item.objects.count(), 0) # assert
-
+    def test_redirects_after_POST(self):
+        response = self.client.post(
+            '/lists/new',
+            data = {'item_text': 'A new list item'}
+        )
+        self.assertRedirects(response, '/lists/the-only-list-in-the-world/')
 
 class ItemModelTest(TestCase):
 
