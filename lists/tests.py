@@ -13,10 +13,10 @@ class HomePageTest(TestCase):
         self.assertEqual(found.func, home_page)
 
     def test_home_page_returns_correct_html(self):
-        request = HttpRequest()
-        response = home_page(request)
+        request = HttpRequest() # setup
+        response = home_page(request) # exercise
         expected_html = render_to_string('home.html')
-        self.assertEqual(response.content.decode(), expected_html)
+        self.assertEqual(response.content.decode(), expected_html) # assert
 
     def test_home_page_can_save_a_POST_request(self):
         request = HttpRequest() # setup
@@ -25,12 +25,18 @@ class HomePageTest(TestCase):
 
         response = home_page(request) # exercise
 
-        self.assertIn('A new list item', response.content.decode()) # assert
-        expected_html = render_to_string(
-            'home.html',
-            {'new_item_text': 'A new list item'}
-        )
-        self.assertEqual(response.content.decode(), expected_html)
+        self.assertEqual(Item.objects.count(), 1)
+        new_item = Item.objects.first()
+        self.assertEqual(new_item.text, 'A new list item')
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], '/')
+
+    def test_home_page_only_saves_items_when_necessary(self):
+        request = HttpRequest() # setup test
+        home_page(request) # function to be exercised
+        self.assertEqual(Item.objects.count(), 0) # assert
+
 
 class ItemModelTest(TestCase):
 
